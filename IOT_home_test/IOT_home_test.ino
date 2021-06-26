@@ -16,8 +16,8 @@ char auth[] = "E5aL_cWyjc12QG2gASICdegZmdMvSxJk";
 
 ///////////////////////////////////////////////////////////// Your WiFi credentials.
 ///////////////////////////////////////////////////////////// Set password to "" for open networks.
-char ssid[] = "KKV-WiFi";
-char pass[] = "icecream123";
+char ssid[] = "";
+char pass[] = "";
 
 /////////////////////////////////////////////////////////////pin declaration
 uint8_t motor_in1 = 2; //D2
