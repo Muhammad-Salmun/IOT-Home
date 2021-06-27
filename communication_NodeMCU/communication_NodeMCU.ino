@@ -1,9 +1,12 @@
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
+<<<<<<< HEAD
 #include <DHT.h>
 
 #define DHTTYPE    DHT11
+=======
+>>>>>>> feature-communication
 
 //////////////////////////////////////////////////////////////blynk_authentication_code
 char auth[] = "E5aL_cWyjc12QG2gASICdegZmdMvSxJk";
@@ -14,7 +17,10 @@ char ssid[] = "KKV-WiFi";
 char pass[] = "icecream123";
 
 /////////////////////////////////////////////////////////////pin declaration
+<<<<<<< HEAD
 uint8_t DHTPin = 2; //D4
+=======
+>>>>>>> feature-communication
 uint8_t AD1 = 12;  //D6
 uint8_t AD2 =  13;  //D7
 uint8_t AD3 = 15; //D8
@@ -31,12 +37,16 @@ int empty_ary[3]    = {1,1,1};
 int data[3]         = {1,1,1};
 
 int authorised = 1;
+<<<<<<< HEAD
 float Temperature=0,Humidity = 0;
 
 /////////////////////////////////////////////////////////////DHT 
 DHT dht(DHTPin, DHTTYPE);
 
 ////////////////////////////////////////////////////////////void_Setup
+=======
+
+>>>>>>> feature-communication
 void setup() {
     // Debug console
   Serial.begin(9600);
@@ -91,6 +101,7 @@ BLYNK_WRITE(V7)  //MAIN L8
 BLYNK_WRITE(V8) // V8 is the Lock widget 
 { if (param.asInt())authorised = 0; else  authorised =1; }
 
+<<<<<<< HEAD
 //////////////////////////////////////////////////////////////////Blynk read
 BLYNK_READ(V10){
   if (!isnan(Temperature)) Blynk.virtualWrite(V10, Temperature);
@@ -105,5 +116,7 @@ BLYNK_READ(V11){
   Serial.println(Humidity);    
 }
 
+=======
+>>>>>>> feature-communication
 /////////////////////////////////////////////////////////////////////////array_copy
 void ary_cpy(int a[3], int b[3])  {  for(int i=0; i<3; i++)     a[i]=b[i];  }
