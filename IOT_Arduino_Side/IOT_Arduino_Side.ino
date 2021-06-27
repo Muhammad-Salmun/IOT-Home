@@ -40,6 +40,14 @@ void setup()
   pinMode(dp3,INPUT);
   
   Serial.begin(9600);
+
+  digitalWrite(mnl8,LOW);
+  digitalWrite(frl8,LOW);
+  digitalWrite(frfn,LOW);
+  digitalWrite(brl8,LOW);
+  digitalWrite(brfn,LOW);
+  digitalWrite(mtr_pin,LOW);
+  digitalWrite(buzz_pin,LOW);
 }
 
 void loop()
@@ -61,13 +69,13 @@ if (flag==0)
   {
     if(mnl8_state == 0)
     {
-    digitalWrite(mnl8,HIGH);
+    digitalWrite(mnl8,LOW);
     Serial.println("Main Light ON");
     mnl8_state = 1;
     }
     else if (mnl8_state == 1)
     {
-    digitalWrite(mnl8,LOW);
+    digitalWrite(mnl8,HIGH);
     Serial.println("Main Light OFF"); 
     mnl8_state = 0;    
     }
@@ -79,13 +87,13 @@ if (flag==0)
   {
     if(frl8_state == 0)
     {
-    digitalWrite(frl8,HIGH);
+    digitalWrite(frl8,LOW);
     Serial.println("Front Room Light ON");
     frl8_state = 1;
     }
     else if (frl8_state == 1)
     {
-    digitalWrite(frl8,LOW);
+    digitalWrite(frl8,HIGH);
     Serial.println("Front Room Light OFF"); 
     frl8_state = 0;    
     }
@@ -97,13 +105,13 @@ if (flag==0)
   {
     if(frfn_state == 0)
     {
-    digitalWrite(frfn,HIGH);
+    digitalWrite(frfn,LOW);
     Serial.println("Front Room Fan ON");
     frfn_state = 1;
     }
     else if (frfn_state == 1)
     {
-    digitalWrite(frfn,LOW);
+    digitalWrite(frfn,HIGH);
     Serial.println("Front Room Fan OFF"); 
     frfn_state = 0;    
     }
@@ -115,13 +123,13 @@ if (flag==0)
   {
     if(brl8_state == 0)
     {
-    digitalWrite(brl8,HIGH);
+    digitalWrite(brl8,LOW);
     Serial.println("Back Room Light ON");
     brl8_state = 1;
     }
     else if (brl8_state == 1)
     {
-    digitalWrite(brl8,LOW);
+    digitalWrite(brl8,HIGH);
     Serial.println("Back Room Light OFF"); 
     brl8_state = 0;    
     }
@@ -133,13 +141,13 @@ if (flag==0)
   {
     if(brfn_state == 0)
     {
-    digitalWrite(brfn,HIGH);
+    digitalWrite(brfn,LOW);
     Serial.println("Back Room Fan ON");
     brfn_state = 1;
     }
     else if (brfn_state == 1)
     {
-    digitalWrite(brfn,LOW);
+    digitalWrite(brfn,HIGH);
     Serial.println("Back Room Fan OFF"); 
     brfn_state = 0;    
     }
@@ -151,13 +159,13 @@ if (flag==0)
   {
     if(mtr_pin_state == 0)
     {
-    digitalWrite(mtr_pin,HIGH);
+    digitalWrite(mtr_pin,LOW);
     Serial.println("Motor Pin ON");
     mtr_pin_state = 1;
     }
     else if (mtr_pin_state == 1)
     {
-    digitalWrite(mtr_pin,LOW);
+    digitalWrite(mtr_pin,HIGH);
     Serial.println("Motor Pin OFF"); 
     mtr_pin_state = 0;    
     }
@@ -169,13 +177,13 @@ if (flag==0)
   {
     if(buzz_pin_state == 0)
     {
-    digitalWrite(buzz_pin,HIGH);
+    digitalWrite(buzz_pin,LOW);
     Serial.println("Buzzer Alarm ON");
     buzz_pin_state = 1;
     }
     else if (buzz_pin_state == 1)
     {
-    digitalWrite(buzz_pin,LOW);
+    digitalWrite(buzz_pin,HIGH);
     Serial.println("Buzzer Alarm OFF"); 
     buzz_pin_state = 0;    
     }

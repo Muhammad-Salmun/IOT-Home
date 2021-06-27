@@ -21,9 +21,11 @@ char pass[] = "icecream123";
 
 /////////////////////////////////////////////////////////////pin declaration
 uint8_t DHTPin = 2; //D4
+uint8_t IR =  14;  //D5
 uint8_t AD1 = 12;  //D6
 uint8_t AD2 =  13;  //D7
 uint8_t AD3 = 15; //D8
+uint8_t MQ = A0;
 
 ////////////////////////////////////////////////array declaration
 int frl8_ary[3]     = {0,0,0};
@@ -37,8 +39,8 @@ int empty_ary[3]    = {1,1,1};
 int data[3]         = {1,1,1};
 
 String tag ;
-int authorised = 1;
-float Temperature=0,Humidity = 0;
+int authorised = 1, alarm=0;
+float Temperature = 0, Humidity = 0, snsr_thrshld = 50;
 
 /////////////////////////////////////////////////////////////DHT 
 DHT dht(DHTPin, DHTTYPE);
@@ -57,6 +59,8 @@ void setup() {
   
   Blynk.begin(auth, ssid, pass);
   
+  pinMode(IR,INPUT);
+  pinMode(MQ,INPUT);
   pinMode(AD1,OUTPUT);
   pinMode(AD2,OUTPUT);
   pinMode(AD3,OUTPUT);
@@ -64,23 +68,33 @@ void setup() {
 }
 
 ////////////////////////////////////////////////////////////////////void_loop
-void loop() {
+void loop() 
+{
   Blynk.run();
   appliance_controls();
-  if (authorised ==0) read_rfid();
+  security_system();
+  
   Serial.print("authorised: ");
   Serial.println(authorised);
+  Serial.print("alarm: ");
+  Serial.println(alarm);
+  Serial.print("IR: ");
+  Serial.println(digitalRead(IR));
+  Serial.print("MQ: ");
+  Serial.println(analogRead(MQ));
 }
 
 //////////////////////////////////////////////////////////////////Appliance controls
-void appliance_controls(){
+void appliance_controls()
+{
   arduino_data();
   delay(2000);
   ary_cpy(data,empty_ary);
 }
 
 ////////////////////////////////////////////////////////////////////arduino_data
-void arduino_data(){
+void arduino_data()
+{
   digitalWrite(AD1,data[0]);  
   Serial.print(data[0]);
   digitalWrite(AD2,data[1]);
@@ -106,17 +120,36 @@ BLYNK_WRITE(V8) // V8 is the Lock widget
 { if (param.asInt())authorised = 0; else  authorised =1; }
 
 //////////////////////////////////////////////////////////////////Blynk read
-BLYNK_READ(V10){
+BLYNK_READ(V10)
+{
   if (!isnan(Temperature)) Blynk.virtualWrite(V10, Temperature);
   Temperature = dht.readTemperature();
   Serial.print("Temperature: ");
   Serial.println(Temperature); 
 }
-BLYNK_READ(V11){
+BLYNK_READ(V11)
+{
   if (!isnan(Humidity)) Blynk.virtualWrite(V11, Humidity);  
   Humidity = dht.readHumidity();
   Serial.print("Humidity: ");
   Serial.println(Humidity);    
+}
+
+//////////////////////////////////////////////////////////////////security system
+void security_system()
+{
+  if (authorised ==0) read_rfid();
+  if(authorised==1 && alarm==1)  {
+    //led_auth.off();
+    ary_cpy(data,buzz_pin_ary);
+    alarm = 0;
+    Blynk.virtualWrite(V8,0);   //lock widget       
+  }
+  if(analogRead(MQ)>snsr_thrshld && alarm==0){    ///MQ sensor
+    ary_cpy(data,buzz_pin_ary);   
+    //led_auth.on();
+    alarm=1;                    //alarm on
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////RFID Reading
@@ -133,8 +166,13 @@ void read_rfid()
         authorised = 1;
         Blynk.virtualWrite(V8,0);   //lock widget
     }              
-  }   
-          
+  } 
+  else if(alarm==0 && digitalRead(IR)==1){
+      ary_cpy(data,buzz_pin_ary);   
+      //led_auth.on();
+      alarm=1;                    //alarm on
+      delay(700);              
+  }          
     tag = "";
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
