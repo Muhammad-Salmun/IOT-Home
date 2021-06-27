@@ -1,12 +1,15 @@
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
-<<<<<<< HEAD
 #include <DHT.h>
+#include <SPI.h>
+#include <MFRC522.h>
 
 #define DHTTYPE    DHT11
-=======
->>>>>>> feature-communication
+
+////////////////////////////////////////////////////////////RFID
+constexpr uint8_t RST_PIN = 16;//D0     
+constexpr uint8_t SS_PIN = 5;  //D1
 
 //////////////////////////////////////////////////////////////blynk_authentication_code
 char auth[] = "E5aL_cWyjc12QG2gASICdegZmdMvSxJk";
@@ -17,10 +20,7 @@ char ssid[] = "KKV-WiFi";
 char pass[] = "icecream123";
 
 /////////////////////////////////////////////////////////////pin declaration
-<<<<<<< HEAD
 uint8_t DHTPin = 2; //D4
-=======
->>>>>>> feature-communication
 uint8_t AD1 = 12;  //D6
 uint8_t AD2 =  13;  //D7
 uint8_t AD3 = 15; //D8
@@ -36,20 +36,24 @@ int mnl8_ary[3]     = {1,1,0};
 int empty_ary[3]    = {1,1,1};
 int data[3]         = {1,1,1};
 
+String tag ;
 int authorised = 1;
-<<<<<<< HEAD
 float Temperature=0,Humidity = 0;
 
 /////////////////////////////////////////////////////////////DHT 
 DHT dht(DHTPin, DHTTYPE);
 
-////////////////////////////////////////////////////////////void_Setup
-=======
+/////////////////////////////////////////////////////////////RFID
+MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
+MFRC522::MIFARE_Key key;
 
->>>>>>> feature-communication
+////////////////////////////////////////////////////////////void_Setup
 void setup() {
     // Debug console
   Serial.begin(9600);
+  
+  SPI.begin(); // Init SPI bus
+  rfid.PCD_Init(); // Init MFRC522.
   
   Blynk.begin(auth, ssid, pass);
   
@@ -63,7 +67,7 @@ void setup() {
 void loop() {
   Blynk.run();
   appliance_controls();
-
+  if (authorised ==0) read_rfid();
   Serial.print("authorised: ");
   Serial.println(authorised);
 }
@@ -101,7 +105,6 @@ BLYNK_WRITE(V7)  //MAIN L8
 BLYNK_WRITE(V8) // V8 is the Lock widget 
 { if (param.asInt())authorised = 0; else  authorised =1; }
 
-<<<<<<< HEAD
 //////////////////////////////////////////////////////////////////Blynk read
 BLYNK_READ(V10){
   if (!isnan(Temperature)) Blynk.virtualWrite(V10, Temperature);
@@ -116,7 +119,26 @@ BLYNK_READ(V11){
   Serial.println(Humidity);    
 }
 
-=======
->>>>>>> feature-communication
+////////////////////////////////////////////////////////////////////////////RFID Reading
+void read_rfid()
+{
+  if ( ! rfid.PICC_IsNewCardPresent())
+    return;
+  if (rfid.PICC_ReadCardSerial()) {
+    for (byte i = 0; i < 4; i++) {
+      tag += rfid.uid.uidByte[i];
+    }
+    Serial.println(tag);    
+    if(tag == "1175821844"){
+        authorised = 1;
+        Blynk.virtualWrite(V8,0);   //lock widget
+    }              
+  }   
+          
+    tag = "";
+    rfid.PICC_HaltA();
+    rfid.PCD_StopCrypto1();
+}
+
 /////////////////////////////////////////////////////////////////////////array_copy
 void ary_cpy(int a[3], int b[3])  {  for(int i=0; i<3; i++)     a[i]=b[i];  }
