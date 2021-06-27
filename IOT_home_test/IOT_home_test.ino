@@ -20,12 +20,12 @@ char ssid[] = "";
 char pass[] = "";
 
 /////////////////////////////////////////////////////////////pin declaration
-uint8_t motor_in1 = 2; //D2
+uint8_t motor_in1 =  2; //D2
 uint8_t motor_in2 = 0; //D3
 uint8_t DHTPin = 2; //D4
 uint8_t IR =  14;  //D5
 uint8_t AD1 = 12;  //D6
-uint8_t AD2 = 13;  //D7
+uint8_t AD2 =  13;  //D7
 uint8_t AD3 = 15; //D8
 uint8_t MQ = A0;
 
@@ -42,7 +42,7 @@ int data[3]         = {1,1,1};
 
 String tag ;
 int authorised = 1, alarm=0;
-float Temperature=0,Humidity = 0,snsr_thrshld = 0;
+float Temperature=0,Humidity = 0,snsr_thrshld = 50;
 
 /////////////////////////////////////////////////////////////RFID
 MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
@@ -81,7 +81,16 @@ void loop()
 {
   Blynk.run();
   appliance_controls();
-  security_system()
+  security_system();
+  
+  Serial.print("authorised: ");
+  Serial.println(authorised);
+  Serial.print("alarm: ");
+  Serial.println(alarm);
+  Serial.print("IR: ");
+  Serial.println(digitalRead(IR));
+  Serial.print("MQ: ");
+  Serial.println(analogRead(MQ));
 }
 
 //////////////////////////////////////////////////////////////////Appliance controls
@@ -136,25 +145,21 @@ void read_rfid(){
   }
 }
 
-/*///////////////////////////////////////////////////////////////////alarm
-void sound_alarm(){
-  ary_cpy(data,buzz_pin_ary);
-  led_auth.on();
-  alarm=1; 
-  delay(700); 
-}*/
 ////////////////////////////////////////////////////////////////////arduino_data
 void arduino_data(){
-  digitalWrite(AD1,data[0]);
+  if (data[0] == 0) digitalWrite(AD1,LOW);
+  else digitalWrite(AD1,HIGH);
   Serial.print(data[0]);
-  digitalWrite(AD2,data[1]);
+  if (data[1] == 0) digitalWrite(AD2,LOW);
+  else digitalWrite(AD2,HIGH);
   Serial.print(data[1]);
-  digitalWrite(AD3,data[2]);
+  if (data[2] == 0) digitalWrite(AD3,LOW);
+  else digitalWrite(AD3,HIGH);
   Serial.println(data[2]);  
 }
 
 /////////////////////////////////////////////////////////////////////////array_copy
-void ary_cpy(int a[3], int b[3]){  for(int i=0; i<3; i++)     a[i]=b[i];  }
+void ary_cpy(int a[3], int b[3])  {  for(int i=0; i<3; i++)     a[i]=b[i];  }
 
 //////////////////////////////////////////////////////////////////Blynk write
 BLYNK_WRITE(V2)  //FRL8
@@ -174,12 +179,14 @@ BLYNK_WRITE(V8) // V8 is the Lock widget
 
 //////////////////////////////////////////////////////////////////Blynk read
 BLYNK_READ(V10){
+  if (!isnan(Temperature)) Blynk.virtualWrite(V10, Temperature);
   Temperature = dht.readTemperature();
-  Serial.println(Temperature);
-  Blynk.virtualWrite(V10, Temperature);   
+  Serial.print("Temperature: ");
+  Serial.println(Temperature); 
 }
 BLYNK_READ(V11){
+  if (!isnan(Humidity)) Blynk.virtualWrite(V11, Humidity);  
   Humidity = dht.readHumidity();
-  Serial.println(Humidity);
-  Blynk.virtualWrite(V11, Humidity);   
+  Serial.print("Humidity: ");
+  Serial.println(Humidity);    
 }
