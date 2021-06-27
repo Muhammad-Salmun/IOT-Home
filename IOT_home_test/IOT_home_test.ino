@@ -147,11 +147,14 @@ void read_rfid(){
 
 ////////////////////////////////////////////////////////////////////arduino_data
 void arduino_data(){
-  digitalWrite(AD1,data[0]);
+  if (data[0] == 0) digitalWrite(AD1,LOW);
+  else digitalWrite(AD1,HIGH);
   Serial.print(data[0]);
-  digitalWrite(AD2,data[1]);
+  if (data[1] == 0) digitalWrite(AD2,LOW);
+  else digitalWrite(AD2,HIGH);
   Serial.print(data[1]);
-  digitalWrite(AD3,data[2]);
+  if (data[2] == 0) digitalWrite(AD3,LOW);
+  else digitalWrite(AD3,HIGH);
   Serial.println(data[2]);  
 }
 
