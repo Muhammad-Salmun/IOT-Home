@@ -20,12 +20,12 @@ char ssid[] = "KKV-WiFi";
 char pass[] = "icecream123";
 
 /////////////////////////////////////////////////////////////pin declaration
-uint8_t DHTPin = 2; //D4
-uint8_t IR =  14;  //D5
-uint8_t AD1 = 12;  //D6
-uint8_t AD2 =  13;  //D7
+uint8_t DHTPin = 4;  //D2
+uint8_t IR =  A0;
+uint8_t AD1 = 0;  //D3
+uint8_t AD2 = 2;  //D4
 uint8_t AD3 = 15; //D8
-uint8_t MQ = A0;
+
 
 ////////////////////////////////////////////////array declaration
 int frl8_ary[3]     = {0,0,0};
@@ -40,7 +40,7 @@ int data[3]         = {1,1,1};
 
 String tag ;
 int authorised = 1, alarm=0;
-float Temperature = 0, Humidity = 0, snsr_thrshld = 50;
+float Temperature = 32, Humidity = 68;
 
 /////////////////////////////////////////////////////////////DHT 
 DHT dht(DHTPin, DHTTYPE);
@@ -48,6 +48,8 @@ DHT dht(DHTPin, DHTTYPE);
 /////////////////////////////////////////////////////////////RFID
 MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 MFRC522::MIFARE_Key key;
+
+WidgetLED led_auth(V9); // led for authentication
 
 ////////////////////////////////////////////////////////////void_Setup
 void setup() {
@@ -59,8 +61,8 @@ void setup() {
   
   Blynk.begin(auth, ssid, pass);
   
+  led_auth.off();
   pinMode(IR,INPUT);
-  pinMode(MQ,INPUT);
   pinMode(AD1,OUTPUT);
   pinMode(AD2,OUTPUT);
   pinMode(AD3,OUTPUT);
@@ -79,9 +81,8 @@ void loop()
   Serial.print("alarm: ");
   Serial.println(alarm);
   Serial.print("IR: ");
-  Serial.println(digitalRead(IR));
-  Serial.print("MQ: ");
-  Serial.println(analogRead(MQ));
+  Serial.println(analogRead(IR));
+
 }
 
 //////////////////////////////////////////////////////////////////Appliance controls
@@ -122,14 +123,14 @@ BLYNK_WRITE(V8) // V8 is the Lock widget
 //////////////////////////////////////////////////////////////////Blynk read
 BLYNK_READ(V10)
 {
-  if (!isnan(Temperature)) Blynk.virtualWrite(V10, Temperature);
+  if (!isnan(Temperature) && Temperature < 90 && Temperature > 23) Blynk.virtualWrite(V10, Temperature);
   Temperature = dht.readTemperature();
   Serial.print("Temperature: ");
   Serial.println(Temperature); 
 }
 BLYNK_READ(V11)
 {
-  if (!isnan(Humidity)) Blynk.virtualWrite(V11, Humidity);  
+  if (!isnan(Humidity) && Humidity < 100 && Humidity > 30 ) Blynk.virtualWrite(V11, Humidity);  
   Humidity = dht.readHumidity();
   Serial.print("Humidity: ");
   Serial.println(Humidity);    
@@ -139,24 +140,28 @@ BLYNK_READ(V11)
 void security_system()
 {
   if (authorised ==0) read_rfid();
-  if(authorised==1 && alarm==1)  {
-    //led_auth.off();
+  if(authorised==1 && alarm==1) {
+    led_auth.off();
     ary_cpy(data,buzz_pin_ary);
     alarm = 0;
     Blynk.virtualWrite(V8,0);   //lock widget       
-  }
-  if(analogRead(MQ)>snsr_thrshld && alarm==0){    ///MQ sensor
-    ary_cpy(data,buzz_pin_ary);   
-    //led_auth.on();
-    alarm=1;                    //alarm on
-  }
+  }  
 }
 
 ////////////////////////////////////////////////////////////////////////////RFID Reading
 void read_rfid()
 {
   if ( ! rfid.PICC_IsNewCardPresent())
-    return;
+  {
+    if(alarm==0 && analogRead(IR)< 50){
+      ary_cpy(data,buzz_pin_ary);   
+      led_auth.on();
+      alarm=1;                    //alarm on
+      delay(700);              
+  }   
+  return;
+  }
+  
   if (rfid.PICC_ReadCardSerial()) {
     for (byte i = 0; i < 4; i++) {
       tag += rfid.uid.uidByte[i];
@@ -164,18 +169,14 @@ void read_rfid()
     Serial.println(tag);    
     if(tag == "1175821844"){
         authorised = 1;
+        Serial.println("unlocked using RFID");
         Blynk.virtualWrite(V8,0);   //lock widget
     }              
-  } 
-  else if(alarm==0 && digitalRead(IR)==1){
-      ary_cpy(data,buzz_pin_ary);   
-      //led_auth.on();
-      alarm=1;                    //alarm on
-      delay(700);              
-  }          
-    tag = "";
-    rfid.PICC_HaltA();
-    rfid.PCD_StopCrypto1();
+  }         
+  
+  tag = "";
+  rfid.PICC_HaltA();
+  rfid.PCD_StopCrypto1();
 }
 
 /////////////////////////////////////////////////////////////////////////array_copy

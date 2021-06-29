@@ -11,6 +11,12 @@
 #define dp2 12
 #define dp3 13
 
+#define MQ A0
+#define Flame_snsr A2
+#define alarm_led A7
+#define half A4
+#define full A5
+
 int frl8_ary[3]     = {0,0,0};
 int frfn_ary[3]     = {0,0,1};
 int brl8_ary[3]     = {0,1,0};
@@ -21,11 +27,11 @@ int mnl8_ary[3]     = {1,1,0};
 int empty_ary[3]    = {1,1,1};
 int data[3];
 
-int flag = 0, comnd_dly = 500, prog_dly = 500;
+int flag = 0, comnd_dly = 500, prog_dly = 500, MQ_thrshld = 400;
 int frl8_state=0 ,frfn_state=0 ,brl8_state=0 ,brfn_state=0;
 int mtr_pin_state=0, buzz_pin_state=0, mnl8_state=0;
 
-void setup()
+void setup()    /////////////////////////////////////////////////////////////////void_setup
 {
   pinMode(frl8,OUTPUT);
   pinMode(frfn,OUTPUT);
@@ -38,19 +44,23 @@ void setup()
   pinMode(dp1,INPUT);
   pinMode(dp2,INPUT);
   pinMode(dp3,INPUT);
+
+  pinMode(MQ,INPUT);
+  pinMode(Flame_snsr,INPUT);
   
   Serial.begin(9600);
 
-  digitalWrite(mnl8,LOW);
-  digitalWrite(frl8,LOW);
-  digitalWrite(frfn,LOW);
-  digitalWrite(brl8,LOW);
-  digitalWrite(brfn,LOW);
-  digitalWrite(mtr_pin,LOW);
+  delay(300);
+  digitalWrite(mnl8,HIGH);
+  digitalWrite(frl8,HIGH);
+  digitalWrite(frfn,HIGH);
+  digitalWrite(brl8,HIGH);
+  digitalWrite(brfn,HIGH);
+  digitalWrite(mtr_pin,HIGH);
   digitalWrite(buzz_pin,LOW);
 }
 
-void loop()
+void loop() /////////////////////////////////////////////////////////////////void_loop
 {
   data[0]=digitalRead(dp1);
   data[1]=digitalRead(dp2);
@@ -63,27 +73,41 @@ void loop()
   Serial.print(data[2]);
   Serial.println('}');
 
-if (flag==0)
-{
-  if(data[0] == mnl8_ary[0] && data[1] == mnl8_ary[1] && data[2] == mnl8_ary[2])
-  {
-    if(mnl8_state == 0)
-    {
-    digitalWrite(mnl8,LOW);
-    Serial.println("Main Light ON");
-    mnl8_state = 1;
-    }
-    else if (mnl8_state == 1)
-    {
-    digitalWrite(mnl8,HIGH);
-    Serial.println("Main Light OFF"); 
-    mnl8_state = 0;    
-    }
-    flag =1;
-    delay(comnd_dly);
-  }
+  appliance_control();
+  safety();
+  
+  delay(prog_dly); 
+}
 
-   else if(data[0] == frl8_ary[0] && data[1] == frl8_ary[1] && data[2] == frl8_ary[2])
+void safety()   /////////////////////////////////////////////////////////////////safety
+{
+  if (analogRead(MQ) > MQ_thrshld && digitalRead(Flame_snsr) == 0)  digitalWrite(alarm_led,HIGH);
+  else digitalWrite(alarm_led,LOW);
+  Serial.print("MQ: ");
+  Serial.println(analogRead(MQ));
+  Serial.print("Flame: ");
+  Serial.println(digitalRead(Flame_snsr));
+}
+
+void water_refill()
+{
+  
+  if (analogRead(half) > 500) {
+    digitalWrite(mtr_pin,LOW);
+    Serial.println("Motor Pin ON");
+  }
+  if (analogRead(full) < 380)
+  {
+    digitalWrite(mtr_pin,HIGH);
+    Serial.println("Motor Pin OFF");
+  }
+}
+
+void appliance_control()    /////////////////////////////////////////////////////////////////appliance_control
+{
+  if (flag==0)
+{
+  if(data[0] == frl8_ary[0] && data[1] == frl8_ary[1] && data[2] == frl8_ary[2])
   {
     if(frl8_state == 0)
     {
@@ -155,35 +179,17 @@ if (flag==0)
     delay(comnd_dly);
   }
 
-    else if(data[0] == mtr_pin_ary[0] && data[1] == mtr_pin_ary[1] && data[2] == mtr_pin_ary[2])
-  {
-    if(mtr_pin_state == 0)
-    {
-    digitalWrite(mtr_pin,LOW);
-    Serial.println("Motor Pin ON");
-    mtr_pin_state = 1;
-    }
-    else if (mtr_pin_state == 1)
-    {
-    digitalWrite(mtr_pin,HIGH);
-    Serial.println("Motor Pin OFF"); 
-    mtr_pin_state = 0;    
-    }
-    flag =1;
-    delay(comnd_dly);
-  }
-
     else if(data[0] == buzz_pin_ary[0] && data[1] == buzz_pin_ary[1] && data[2] == buzz_pin_ary[2])
   {
     if(buzz_pin_state == 0)
     {
-    digitalWrite(buzz_pin,LOW);
+    digitalWrite(buzz_pin,HIGH);
     Serial.println("Buzzer Alarm ON");
     buzz_pin_state = 1;
     }
     else if (buzz_pin_state == 1)
     {
-    digitalWrite(buzz_pin,HIGH);
+    digitalWrite(buzz_pin,LOW);
     Serial.println("Buzzer Alarm OFF"); 
     buzz_pin_state = 0;    
     }
@@ -193,9 +199,8 @@ if (flag==0)
 }
 
 else if(data[0] == empty_ary[0] && data[1] == empty_ary[1] && data[2] == empty_ary[2])
-{
-  flag = 0;
-  Serial.println(flag);
-}
-  delay(prog_dly); 
+  {
+    flag = 0;
+    Serial.println(flag);
+  }
 }
