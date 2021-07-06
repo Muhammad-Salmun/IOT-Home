@@ -12,12 +12,12 @@ constexpr uint8_t RST_PIN = 16;//D0
 constexpr uint8_t SS_PIN = 5;  //D1
 
 //////////////////////////////////////////////////////////////blynk_authentication_code
-char auth[] = "E5aL_cWyjc12QG2gASICdegZmdMvSxJk";
+char auth[] = "EGeWBLNzxLSJU50BUyhjo8t64KZ3vlTX";
 
 ///////////////////////////////////////////////////////////// Your WiFi credentials.
 ///////////////////////////////////////////////////////////// Set password to "" for open networks.
-char ssid[] = "KKV-WiFi";
-char pass[] = "icecream123";
+char ssid[] = "WiFi";
+char pass[] = "abc12345";
 
 /////////////////////////////////////////////////////////////pin declaration
 uint8_t DHTPin = 4;  //D2
@@ -38,7 +38,7 @@ int mnl8_ary[3]     = {1,1,0};
 int empty_ary[3]    = {1,1,1};
 int data[3]         = {1,1,1};
 
-String tag ;
+String tag, my_tag_id = "1175821844"; //paste your tag_id to authorise
 int authorised = 1, alarm=0;
 float Temperature = 32, Humidity = 68;
 
@@ -167,7 +167,7 @@ void read_rfid()
       tag += rfid.uid.uidByte[i];
     }
     Serial.println(tag);    
-    if(tag == "1175821844"){
+    if(tag == my_tag_id){
         authorised = 1;
         Serial.println("unlocked using RFID");
         Blynk.virtualWrite(V8,0);   //lock widget

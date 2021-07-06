@@ -3,9 +3,8 @@
 #define frfn 5
 #define brl8 6
 #define brfn 7
-#define mtr_pin 8
 #define buzz_pin 9
-#define mnl8 10
+#define mtr_pin 10
 
 #define dp1 11
 #define dp2 12
@@ -39,19 +38,16 @@ void setup()    ////////////////////////////////////////////////////////////////
   pinMode(brfn,OUTPUT);
   pinMode(mtr_pin,OUTPUT);
   pinMode(buzz_pin,OUTPUT);
-  pinMode(mnl8,OUTPUT);
 
   pinMode(dp1,INPUT);
   pinMode(dp2,INPUT);
   pinMode(dp3,INPUT);
-
   pinMode(MQ,INPUT);
   pinMode(Flame_snsr,INPUT);
   
   Serial.begin(9600);
 
   delay(300);
-  digitalWrite(mnl8,HIGH);
   digitalWrite(frl8,HIGH);
   digitalWrite(frfn,HIGH);
   digitalWrite(brl8,HIGH);
@@ -75,24 +71,30 @@ void loop() /////////////////////////////////////////////////////////////////voi
 
   appliance_control();
   safety();
+  water_refill();
   
   delay(prog_dly); 
 }
 
 void safety()   /////////////////////////////////////////////////////////////////safety
 {
-  if (analogRead(MQ) > MQ_thrshld && digitalRead(Flame_snsr) == 0)  digitalWrite(alarm_led,HIGH);
+  if (analogRead(MQ) > MQ_thrshld && analogRead(Flame_snsr) > 550)  digitalWrite(alarm_led,HIGH);
   else digitalWrite(alarm_led,LOW);
+
   Serial.print("MQ: ");
   Serial.println(analogRead(MQ));
   Serial.print("Flame: ");
-  Serial.println(digitalRead(Flame_snsr));
+  Serial.println(analogRead(Flame_snsr));
+  Serial.print("Half: ");
+  Serial.println(analogRead(half));
+  Serial.print("Full: ");
+  Serial.println(analogRead(full));
 }
 
-void water_refill()
-{
-  
-  if (analogRead(half) > 500) {
+void water_refill()   /////////////////////////////////////////////////////////////////water_system
+{  
+  if (analogRead(half) > 500) 
+  {
     digitalWrite(mtr_pin,LOW);
     Serial.println("Motor Pin ON");
   }
